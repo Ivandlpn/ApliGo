@@ -44,10 +44,7 @@ export const getForecast = async (): Promise<ForecastData> => {
       precipitation: item.rain ? item.rain['3h'] || 0 : 0,
     };
     
-    // Solo añadir si no hay 8 entradas ya para ese día
-    if (dailyForecasts[dayKey].length < 8) {
-        dailyForecasts[dayKey].push(forecastEntry);
-    }
+    dailyForecasts[dayKey].push(forecastEntry);
   });
 
   return {
