@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getForecast } from './services/weatherService';
+import { getMockForecast } from './services/weatherService';
 import type { ForecastData } from './types';
 import ForecastChart from './components/ForecastChart';
 import ForecastTable from './components/ForecastTable';
@@ -8,27 +8,21 @@ import { SunIcon, MoonIcon } from './components/Icons';
 const App: React.FC = () => {
   const [forecast, setForecast] = useState<ForecastData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string>('');
-
+  
   useEffect(() => {
-    const fetchForecast = async () => {
-      try {
-        setLoading(true);
-        const data = await getForecast();
-        setForecast(data);
-        if (data && Object.keys(data.dailyForecasts).length > 0) {
-          setSelectedDay(Object.keys(data.dailyForecasts)[0]);
-        }
-      } catch (err) {
-        setError('No se pudo cargar el pronóstico. Por favor, intente de nuevo más tarde.');
-        console.error(err);
-      } finally {
-        setLoading(false);
+    // Cargar datos de ejemplo para una experiencia inmediata
+    try {
+      const mockData = getMockForecast();
+      setForecast(mockData);
+      if (mockData && Object.keys(mockData.dailyForecasts).length > 0) {
+        setSelectedDay(Object.keys(mockData.dailyForecasts)[0]);
       }
-    };
-
-    fetchForecast();
+    } catch (err) {
+      console.error("Error al cargar datos de ejemplo:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const getGreeting = () => {
@@ -39,7 +33,7 @@ const App: React.FC = () => {
   };
 
   const { text: greetingText, icon: greetingIcon } = getGreeting();
-
+  
   const renderContent = () => {
     if (loading) {
       return (
@@ -51,10 +45,6 @@ const App: React.FC = () => {
           <p className="mt-4 text-lg text-slate-600">Cargando pronóstico...</p>
         </div>
       );
-    }
-
-    if (error) {
-      return <p className="text-center text-red-500 text-lg p-8">{error}</p>;
     }
 
     if (!forecast || Object.keys(forecast.dailyForecasts).length === 0) {
@@ -104,16 +94,17 @@ const App: React.FC = () => {
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900">{greetingText}</h1>
           </div>
           <p className="text-lg text-slate-600">
-            Pronóstico para <span className="font-semibold text-sky-600">{forecast?.spotName || '...'}</span>
+            Condiciones para tu paseo en <span className="font-semibold text-sky-600">{forecast?.spotName || '...'}</span>
           </p>
           <p className="text-xs text-slate-500 mt-1">
-            Última actualización: {forecast ? new Date(forecast.generatedAt).toLocaleString('es-ES') : '...'}
+            Fecha de generación: {forecast ? new Date(forecast.generatedAt).toLocaleString('es-ES') : '...'}
           </p>
         </header>
+        
         {renderContent()}
       </main>
       <footer className="text-center p-4 text-xs text-slate-500">
-        <p>Creado con fines de demostración. Los datos son simulados.</p>
+        <p>La aplicación está en modo demostración con datos de ejemplo.</p>
       </footer>
     </div>
   );

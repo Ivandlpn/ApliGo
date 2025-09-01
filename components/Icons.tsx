@@ -16,7 +16,6 @@ export const MoonIcon: React.FC<IconProps> = ({ className }) => (
     </svg>
 );
 
-
 const CloudIcon: React.FC<IconProps> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
@@ -41,13 +40,15 @@ const PartlyCloudyIcon: React.FC<IconProps> = ({ className }) => (
 interface WeatherIconProps {
   cloudCover: number;
   precipitation: number;
+  size?: 'normal' | 'large';
 }
 
-export const WeatherIcon: React.FC<WeatherIconProps> = ({ cloudCover, precipitation }) => {
-  const className = "w-6 h-6 text-slate-500";
+export const WeatherIcon: React.FC<WeatherIconProps> = ({ cloudCover, precipitation, size = 'normal' }) => {
+  const sizeClass = size === 'large' ? 'w-8 h-8' : 'w-6 h-6';
+  const className = `${sizeClass} text-slate-500`;
 
   if (precipitation > 0.1) {
-    return <RainIcon className="w-6 h-6 text-blue-500" />;
+    return <RainIcon className={`${sizeClass} text-blue-500`} />;
   }
   if (cloudCover > 75) {
     return <CloudIcon className={className} />;
@@ -55,5 +56,5 @@ export const WeatherIcon: React.FC<WeatherIconProps> = ({ cloudCover, precipitat
   if (cloudCover > 25) {
     return <PartlyCloudyIcon className={className} />;
   }
-  return <SunIcon className="w-6 h-6 text-yellow-500" />;
+  return <SunIcon className={`${sizeClass} text-yellow-500`} />;
 };

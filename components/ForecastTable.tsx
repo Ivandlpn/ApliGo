@@ -28,27 +28,32 @@ const getWindColor = (speed: number): string => {
   return 'bg-red-100 text-red-800';
 };
 
-const getWaveColor = (height: number): string => {
-  if (height < 1) return 'bg-sky-100 text-sky-800';
-  if (height < 2) return 'bg-blue-100 text-blue-800';
-  if (height < 3) return 'bg-indigo-100 text-indigo-800';
-  return 'bg-purple-100 text-purple-800';
-};
-
 const DesktopTable: React.FC<{ data: ForecastEntry[] }> = ({ data }) => {
-  const renderRow = (label: string, key: keyof ForecastEntry | 'time' | 'weather') => (
+  const renderRow = (label: string, key: keyof ForecastEntry | 'weather') => (
     <div className="grid grid-cols-9 text-center items-center">
       <div className="col-span-2 text-left font-semibold text-slate-700 py-3 px-2 text-sm">{label}</div>
       {data.map((entry, index) => {
         let content;
         switch (key) {
-          case 'time':
-            content = <span className="font-bold text-slate-800">{new Date(entry.time).getHours()}:00</span>;
+          case 'weather':
+            content = (
+              <div className="flex flex-col items-center justify-center">
+                <WeatherIcon cloudCover={entry.cloudCover} precipitation={entry.precipitation} />
+                 {entry.precipitation > 0 && <span className="text-xs text-blue-500 mt-1">{entry.precipitation}mm</span>}
+              </div>
+            );
             break;
           case 'temperature':
              content = (
               <div className={`w-full h-full flex items-center justify-center p-2 rounded-md ${getTemperatureColor(entry.temperature)}`}>
                 <span className="font-bold text-lg">{entry.temperature}°</span>
+              </div>
+            );
+            break;
+          case 'feelsLike':
+             content = (
+              <div className={`w-full h-full flex items-center justify-center p-2 rounded-md ${getTemperatureColor(entry.feelsLike)}`}>
+                <span className="font-bold text-lg">{entry.feelsLike}°</span>
               </div>
             );
             break;
@@ -72,21 +77,6 @@ const DesktopTable: React.FC<{ data: ForecastEntry[] }> = ({ data }) => {
               <div className="flex flex-col items-center justify-center">
                 <WindArrow degrees={entry.windDirection} />
                 <span className="text-xs text-slate-500 mt-1">{entry.windDirection}°</span>
-              </div>
-            );
-            break;
-          case 'waveHeight':
-             content = (
-              <div className={`w-full h-full flex items-center justify-center p-2 rounded-md ${getWaveColor(entry.waveHeight)}`}>
-                <span className="font-bold text-lg">{entry.waveHeight}</span>
-              </div>
-            );
-            break;
-          case 'weather':
-            content = (
-              <div className="flex flex-col items-center justify-center">
-                <WeatherIcon cloudCover={entry.cloudCover} precipitation={entry.precipitation} />
-                 {entry.precipitation > 0 && <span className="text-xs text-blue-500 mt-1">{entry.precipitation}mm</span>}
               </div>
             );
             break;
@@ -118,13 +108,12 @@ const DesktopTable: React.FC<{ data: ForecastEntry[] }> = ({ data }) => {
 
         {/* Data Rows */}
         <div className="divide-y divide-slate-200">
+          {renderRow('Clima', 'weather')}
           {renderRow('Temperatura (°C)', 'temperature')}
+          {renderRow('Sensación (°C)', 'feelsLike')}
           {renderRow('Nubosidad (%)', 'cloudCover')}
           {renderRow('Viento (nudos)', 'windSpeed')}
           {renderRow('Dirección', 'windDirection')}
-          {renderRow('Clima', 'weather')}
-          {renderRow('Olas (m)', 'waveHeight')}
-          {renderRow('Periodo (s)', 'wavePeriod')}
         </div>
       </div>
     </div>
@@ -136,20 +125,29 @@ const MobileTable: React.FC<{ data: ForecastEntry[] }> = ({ data }) => {
     <div className="overflow-x-auto p-2">
       <div className="flex space-x-3">
         {data.map((entry, index) => (
-          <div key={index} className="bg-white/70 rounded-lg p-3 w-32 flex-shrink-0 text-center shadow">
+          <div key={index} className="bg-white/70 rounded-lg p-3 w-36 flex-shrink-0 text-center shadow">
             <div className="font-bold text-sky-600 mb-3 pb-2 border-b border-slate-300">
               {new Date(entry.time).toLocaleTimeString('es-ES', { hour: '2-digit' })}h
             </div>
             <div className="space-y-3 text-sm">
+              {/* Weather */}
+              <div className="flex flex-col items-center justify-center h-10">
+                <WeatherIcon cloudCover={entry.cloudCover} precipitation={entry.precipitation} size="large" />
+              </div>
+
               {/* Temperature */}
               <div className="flex flex-col items-center">
-                <div className="text-slate-500 mb-1 text-xs">Temp.</div>
-                 <div className={`w-full flex items-center justify-center p-1 rounded-md ${getTemperatureColor(entry.temperature)}`}>
-                    <span className="font-bold text-base">{entry.temperature}°C</span>
-                  </div>
+                <div className={`w-full flex flex-col items-center justify-center p-1 rounded-md ${getTemperatureColor(entry.temperature)}`}>
+                  <span className="font-bold text-xl">{entry.temperature}°C</span>
+                  <span className="text-xs">Real</span>
+                </div>
+                 <div className={`w-full flex flex-col items-center justify-center p-1 mt-1 rounded-md ${getTemperatureColor(entry.feelsLike)}`}>
+                  <span className="font-semibold text-base">{entry.feelsLike}°C</span>
+                  <span className="text-xs">Sensación</span>
+                </div>
               </div>
               
-               {/* Cloud Cover */}
+              {/* Cloud Cover */}
               <div className="flex flex-col items-center">
                 <div className="text-slate-500 mb-1 text-xs">Nubes</div>
                  <div className={`w-full flex items-center justify-center p-1 rounded-md ${getCloudColor(entry.cloudCover)}`}>
@@ -160,38 +158,10 @@ const MobileTable: React.FC<{ data: ForecastEntry[] }> = ({ data }) => {
               {/* Wind */}
               <div className="flex flex-col items-center">
                 <div className="text-slate-500 mb-1 text-xs">Viento</div>
-                <div className={`w-full flex flex-col items-center justify-center p-1 rounded-md ${getWindColor(entry.windSpeed)}`}>
+                <div className={`w-full flex items-center justify-around p-1 rounded-md ${getWindColor(entry.windSpeed)}`}>
                   <span className="font-bold text-base">{entry.windSpeed}</span>
-                  <span className="text-xs">{entry.windGust}</span>
+                  <WindArrow degrees={entry.windDirection} />
                 </div>
-              </div>
-              
-              {/* Direction */}
-              <div className="flex flex-col items-center">
-                <div className="text-slate-500 mb-1 text-xs">Dirección</div>
-                <WindArrow degrees={entry.windDirection} />
-                <span className="text-xs text-slate-500 mt-1">{entry.windDirection}°</span>
-              </div>
-
-              {/* Weather */}
-              <div className="flex flex-col items-center">
-                <div className="text-slate-500 mb-1 text-xs">Clima</div>
-                  <WeatherIcon cloudCover={entry.cloudCover} precipitation={entry.precipitation} />
-                  {entry.precipitation > 0 && <span className="text-xs text-blue-500 mt-1">{entry.precipitation}mm</span>}
-              </div>
-
-              {/* Waves */}
-              <div className="flex flex-col items-center">
-                <div className="text-slate-500 mb-1 text-xs">Olas</div>
-                  <div className={`w-full flex items-center justify-center p-1 rounded-md ${getWaveColor(entry.waveHeight)}`}>
-                    <span className="font-bold text-base">{entry.waveHeight}m</span>
-                  </div>
-              </div>
-              
-              {/* Period */}
-                <div className="flex flex-col items-center">
-                <div className="text-slate-500 mb-1 text-xs">Periodo</div>
-                <span className="font-semibold">{entry.wavePeriod}s</span>
               </div>
             </div>
           </div>
